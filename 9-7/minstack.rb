@@ -1,4 +1,6 @@
 
+require 'pry'
+
 # 4. Design a stack that supports the methods push, pop and top as usual, but which at any point can also retrieve the minimum element in the stack in _constant_ time: https://leetcode.com/problems/min-stack/
 
 class MinStack
@@ -6,19 +8,25 @@ class MinStack
     def initialize
      @stack = []
      @min = Float::INFINITY
+     @min_last = @min
     end
 
     # @param {Integer} x
     # @return {Void} nothing
     def push(x)
       @stack.push(x)
-      @min = x if x < @min 
+      if x <= @min
+        @min_last = @min
+        @min = x 
+      end 
       return nil 
     end
 
     # @return {Void} nothing
-    def pop
-        
+    def pop 
+      popped_value = @stack.pop
+      @min = @min_last if popped_value == @min 
+      return nil 
     end
 
     # @return {Integer}
@@ -27,7 +35,7 @@ class MinStack
     end
 
     # @return {Integer}
-    def get_min
+    def getMin
       @min
     end
 end
@@ -37,9 +45,13 @@ end
 test_cases = [
   {given: [[:push, [1], nil]]}, 
   {given: [[:push, [1], nil], [:top, [], 1]]}, 
-  {given: [[:push, [1], nil], [:get_min, [], 1]]}, 
-  {given: [[:push, [1], nil], [:push, [2], nil], [:pop, [], 2], [:get_min, [], 1]]}, 
+  {given: [[:push, [1], nil], [:getMin, [], 1]]}, 
+  {given: [[:push, [1], nil], [:push, [2], nil], [:pop, [], nil], [:getMin, [], 1]]}, 
+  {given: [[:push, [2], nil], [:push, [0], nil], [:push, [3], nil], [:push, [0], nil], [:getMin, [], 0], [:pop, [], nil], [:getMin, [], 0], [:pop, [], nil], [:getMin, [], 0], [:pop, [], nil], [:getMin, [], 2]]}, 
+
 ]
+
+
 
 test_cases.each do |test_case|
   p test_case[:given]
