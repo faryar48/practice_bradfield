@@ -150,7 +150,6 @@ coord(3, 2) # [(1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3)]
 
 
 
-
 # Problem 7 
 # You are a recently elected dictator with $1m in aid money and a 1% probability that your citizens will rebel. Every time you make a withdrawal of $10k from the aid account the chance of rebellion doubles. What is the maximum amount you can extract from the aid account before the chance of rebellion is over 90%?
 # Solve the problem concretely. Then parameterize it.
