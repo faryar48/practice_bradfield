@@ -13,11 +13,14 @@
 
 # @param {String} path
 # @return {String}
-def simplify_path(path)
+def regexize(path)
   stack = []
-  path.split("/").each do |c| 
-    stack.push(c)
-  end 
+  path.scan(/\w+|[\/\.\..]/)
+end
+
+def simplify_path(string)
+  regex_array = regexize(string)
+  
 end
 
 
@@ -26,16 +29,14 @@ test_cases = [
   {given: "/a/./b/../../c/", expected: "/c"}, 
   {given: "/../", expected: "/"},  
   {given: "/home//foo/", expected: "/home/foo"},  
-
 ]
 
 
 test_cases.each do |test_case| 
-  actual = calculate(test_case[:given])
+  actual = regexize(test_case[:given])
   if actual == test_case[:expected]
     p "pass", test_case[:given] 
   else 
     p "fail", actual, test_case[:expected]
-    exit
   end 
 end 
