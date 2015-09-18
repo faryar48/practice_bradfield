@@ -94,9 +94,6 @@ end
 
 # 3. Modify the function above to also take any base (up to say 36, so certainly binary, octal and hexadecimal).
 
-
-# 3. Modify the function above to also take any base (up to say 36, so certainly binary, octal and hexadecimal).
-
 def dec_to_string(decimal_number, base = 10)
   return "0" if decimal_number == 0
   powers_of_base = powers_for(decimal_number, base)
@@ -322,3 +319,27 @@ end
 
 
 # 7. Given a unix style file path, reduce it to its cannonical form: https://leetcode.com/problems/simplify-path/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

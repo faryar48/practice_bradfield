@@ -19,70 +19,7 @@ require 'pry'
 # @param {String} s
 # @return {Integer}
 
-def calculate(string)
-  tokens = tokenize(string).map { |token_item| rubyize(token_item)}
-  calculate_triple(triplize(tokens))
-end 
-
-
-def calculate_triple(triple)
-  return 0 if triple.empty? 
-  lhs, operator, rhs = triple 
-  return lhs if triple.length == 1 
-  raise "can't calculate: #{triple.inspect}" if triple.length == 2 
-  lhs = calculate_triple(lhs) if lhs.is_a? Array 
-  case operator
-  when :+ then lhs + rhs 
-  when :- then lhs - rhs 
-  else 
-    raise "unknown operator: #{operator}" 
-  end 
-end
-
-calculate_triple_test_cases = [
-  {given: [], expected: 0},
-  {given: [1], expected: 1},
-  {given: [1, :+, 3], expected: 4},
-  {given: [[[1, :+, 1], :+, 4], :+, 5], expected: 11},
-
-]
-
-p "calculate_triple"
-calculate_triple_test_cases.each do |test_case| 
-  actual = calculate_triple(test_case[:given])
-  if actual == test_case[:expected]
-    p "pass", test_case[:given] 
-  else 
-    p "fail", actual, test_case[:expected]
-    exit
-  end
-end 
-
-def triplize(list)
-  return [] if list.empty?
-  if list.length == 1 
-    list
-  elsif list.length == 2 
-    raise "does not make sense"
-  elsif list.length == 3 
-    list
-  else list.length > 3 
-    head = list[0..2]
-    rest = list[3..-1]
-    triplize([head] + rest) 
-  end 
-end 
-
-def rubyize(token_string)
-  if token_string =~ /\d+/
-    token_string.to_i 
-  else
-    token_string.to_sym
-  end
-end 
-
-
-def tokenize(string)
+def tokenize_first(string)
   string.scan(%r/
     \d+ # series of numbers 
     | # or
@@ -90,76 +27,112 @@ def tokenize(string)
     /x)
 end
 
-def nestize(token_list)
-  braces_stack = []
+def rubyize_second(token_string)
+  if token_string =~ /\d+/
+    token_string.to_i 
+  else
+    token_string.to_sym
+  end
+end 
+
+def nestize_third(flat_array)
   depth_array = []
-  is_open = false
-  token_list.each do |item| 
-    if item == "("
-      # binding.pry
-      is_open = true 
-      # binding.pry
-    end 
-    if item == ")"
-      # binding.pry
-      braces_stack.push(depth_array) 
-      is_open = false 
-    end 
-    if item != "(" && item != ")" 
-      if is_open == true 
-        # binding.pry
-        depth_array.push(item)
-      else 
-        # binding.pry
-        braces_stack.push(item)
-      end 
+  braces_stack = 0
+  opening_index = 0
+  flat_array.each_with_index do |char, i|
+    if char == "(" || char == :"("
+      braces_stack += 1
+      opening_index = i + 1 if braces_stack == 1
+      next
+    elsif char == ")" || char == :")"
+      braces_stack -= 1
+      if braces_stack == 0
+        flat_array[opening_index...i]
+        depth_array.push(nestize_third(flat_array[opening_index...i]))
+      end
+      next
+    elsif braces_stack == 0
+      depth_array.push(char) 
     end
   end
-  braces_stack
+  depth_array
+end
+
+
+def triplize_fourth(list)
+  return [] if list.empty?
+  if list.length == 1
+    list
+  elsif list.length == 2
+    raise "does not make sense"
+  elsif list.length == 3 
+    list
+  else list.length > 3
+    head = list[0..2]
+    rest = list[3..-1]
+    triplize_fourth([head] + rest) 
+  end
 end 
 
-nestize_test_cases = [
- {given: [], expected: []}, 
- {given: [1], expected: [1]}, 
- {given: [1, :+, 1], expected: [1, :+, 1]}, 
- {given: ["(", 1, ")"], expected: [[1]]}, 
- {given: [1, :+, "(", 2, :+, 3, ")"], expected: [1, :+, [2, :+, 3]]}, 
- {given: ["(", 1, :+, "(", 4, :+, 5, :+, 2, ")", :-, 3, ")", :+, "(", 6, :+, 8, ")"], expected: [[1, :+, [4, :+, 5, :+, 2], :-, 3], :+, [6, :+, 8]]}, 
+# thinks that the entire array's length is 1 because it is surrounded by parenthesis
+
+
+def calculate_triple_fifth(triple)
+  return 0 if triple.empty? 
+  lhs, operator, rhs = triple 
+  if triple.length == 1 
+    if triple.first.is_a? Array
+      return calculate_triple_fifth(triplize_fourth(triple.first))
+    else
+      return lhs
+    end
+  end
+  raise "can't calculate: #{triple.inspect}" if triple.length == 2
+  lhs = calculate_triple_fifth(triplize_fourth(lhs)) if lhs.is_a? Array 
+  rhs = calculate_triple_fifth(triplize_fourth(rhs)) if rhs.is_a? Array 
+  case operator
+  when :+ then lhs + rhs
+  when :- then lhs - rhs 
+  else
+    raise "unknown operator: #{operator}" 
+  end
+end
+
+def calculate(string)
+  tokens = tokenize_first(string).map { |token_item| rubyize_second(token_item)}
+  nestized = nestize_third(tokens)
+  triplized = triplize_fourth(nestized)
+  calculated_triple = calculate_triple_fifth(triplized)
+end
+
+
+calculate_test_cases = [
+  {given: "4+5+2", expected: 11},  
+  {given: " 1 + (4+5+2)", expected: 12},            
+  {given: "1+(4+5+2)-3", expected: 9}, 
+  {given: "1 + (2 + 3)", expected: 6}, 
+  {given: "(1 + (2 + 3))", expected: 6}, 
+  {given: "", expected: 0}, 
+  {given: "1", expected: 1}, 
+  {given: "1 + 1", expected: 2}, 
+  {given: " 2-1 + 2 ", expected: 3},
+  {given: " 2- (1 + 2) ", expected: -1}, 
+  {given: " (1 + 2 ) + (1 + 2 )", expected: 6},   
+  {given: "(1+(4+5+2)-3)+(6+8)", expected: 23},
 ]
 
-
-p "nestize"
-nestize_test_cases.each do |test_case| 
-  actual = nestize(test_case[:given])
+p "calculate"
+calculate_test_cases.each do |test_case| 
+  actual = calculate(test_case[:given])
   if actual == test_case[:expected]
-    p "pass", test_case[:given] 
+    p "pass" 
   else 
     p "fail", actual, test_case[:expected]
     exit
-  end 
+  end
 end 
 
-
-triplize_test_case = [
- {given: [], expected: []}, 
- {given: [1], expected: [1]},
- {given: [1, :+, 1], expected: [1, :+, 1]},
- {given: [1, :+, 1, :+, 4], expected: [[1, :+, 1], :+, 4]},
- {given: [1, :+, 1, :+, 4, :+, 5], expected: [[[1, :+, 1], :+, 4], :+, 5]},
-]
-
-p "triplize"
-triplize_test_case.each do |test_case| 
-  actual = triplize(test_case[:given])
-  if actual == test_case[:expected]
-    p "pass", test_case[:given] 
-  else 
-    p "fail", actual, test_case[:expected]
-    exit
-  end 
-end 
-
-tokenize_test_cases = [
+tokenize_first_test_cases = [
   {given: "", expected: []},
   {given: "1", expected: ["1"]},
   {given: "1 + 1", expected: ["1", "+", "1"]},
@@ -167,37 +140,128 @@ tokenize_test_cases = [
   {given: "(1+(4+5+2)-3)+(6+8)", expected: ["(", "1", "+", "(", "4", "+", "5", "+", "2", ")", "-", "3", ")", "+", "(", "6", "+", "8", ")"]},  
 ]
 
-p "tokenize"
-tokenize_test_cases.each do |test_case| 
-  actual = tokenize(test_case[:given])
-  if actual == test_case[:expected]
-    p "pass", test_case[:given] 
-  else 
-    p "fail", actual, test_case[:expected]
-    exit
-  end 
-end 
+# p "tokenize_first"
+# tokenize_first_test_cases.each do |test_case| 
+#   actual = tokenize_first(test_case[:given])
+#   if actual == test_case[:expected]
+#     p "pass", test_case[:given] 
+#   else 
+#     p "fail", actual, test_case[:expected]
+#     exit
+#   end
+# end
 
+nestize_third_test_cases = [
+ {given: [], expected: []}, 
+ {given: [1], expected: [1]}, 
+ {given: [1, :+, 1], expected: [1, :+, 1]}, 
+ {given: ["(", 1, ")"], expected: [[1]]}, 
+ {given: [1, :+, "(", 2, :+, 3, ")"], expected: [1, :+, [2, :+, 3]]}, 
+ {given: ["(", 1, :+, "(", 4, :+, 5, :+, 2, ")", :-, 3, ")", :+, "(", 6, :+, 8, ")"], expected: [[1, :+, [4, :+, 5, :+, 2], :-, 3], :+, [6, :+, 8]]}, 
+ {given: [:"(", 1, :+, :"(", 4, :+, 5, :+, 2, :")", :-, 3, :")", :+, :"(", 6, :+, 8, :")"], expected: [[1, :+, [4, :+, 5, :+, 2], :-, 3], :+, [6, :+, 8]]}, 
+]
+
+# p "nestize_third"
+# nestize_third_test_cases.each do |test_case| 
+#   actual = nestize_third(test_case[:given])
+#   if actual == test_case[:expected]
+#     p "pass", test_case[:given] 
+#   else 
+#     p "fail", actual, test_case[:expected]
+#     exit
+#   end 
+# end
+
+triplize_fourth_test_case = [
+ {given: [], expected: []}, 
+ {given: [1], expected: [1]},
+ {given: [1, :+, 1], expected: [1, :+, 1]},
+ {given: [1, :+, 1, :+, 4], expected: [[1, :+, 1], :+, 4]},
+ {given: [1, :+, 1, :+, 4, :+, 5], expected: [[[1, :+, 1], :+, 4], :+, 5]},
+]
+
+# p "triplize_fourth"
+# triplize_fourth_test_case.each do |test_case| 
+#   actual = triplize_fourth(test_case[:given])
+#   if actual == test_case[:expected]
+#     p "pass", test_case[:given] 
+#   else 
+#     p "fail", actual, test_case[:expected]
+#     exit
+#   end 
+# end
+
+calculate_triple_fifth_test_cases = [
+  {given: [], expected: 0},
+  {given: [1], expected: 1},
+  {given: [1, :+, 3], expected: 4},
+  {given: [[[1, :+, 1], :+, 4], :+, 5], expected: 11},
+]
+
+# p "calculate_triple_fifth"
+# calculate_triple_fifth_test_cases.each do |test_case| 
+#   actual = calculate_triple_fifth(test_case[:given])
+#   if actual == test_case[:expected]
+#     p "pass", test_case[:given] 
+#   else 
+#     p "fail", actual, test_case[:expected]
+#     exit
+#   end
+# end
 
 calculate_test_cases = [
   {given: "", expected: 0}, 
   {given: "1", expected: 1}, 
   {given: "1 + 1", expected: 2}, 
   {given: " 2-1 + 2 ", expected: 3}, 
-  # {given: "(1+(4+5+2)-3)+(6+8)", expected: 23},  
-
+  {given: "(1+(4+5+2)-3)+(6+8)", expected: 23},  
 ]
 
-p "calculate"
-calculate_test_cases.each do |test_case| 
-  actual = calculate(test_case[:given])
-  if actual == test_case[:expected]
-    p "pass", test_case[:given] 
-  else 
-    p "fail", actual, test_case[:expected]
-    exit
-  end 
-end 
+# p "calculate"
+# calculate_test_cases.each do |test_case| 
+#   actual = calculate(test_case[:given])
+#   if actual == test_case[:expected]
+#     p "pass", test_case[:given] 
+#   else 
+#     p "fail", actual, test_case[:expected]
+#     exit
+#   end
+# end 
+
+
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+# def calc(input)
+#   return input if input.class == Fixnum
+#   return calc(input[0]) if input.length == 1
+#   calc(input[0]).send(input[1], (calc(input[2..-1])))
+# end
+
+# calc_test_cases = [
+#   {given: "", expected: 0}, 
+#   {given: "1", expected: 1}, 
+#   {given: "1 + 1", expected: 2}, 
+#   {given: " 2-1 + 2 ", expected: 3}, 
+#   {given: "(1+(4+5+2)-3)+(6+8)", expected: 23},  
+# ]
+
+# p "calc - final"
+# calc_test_cases.each do |test_case| 
+#   actual = calc(test_case[:given])
+#   if actual == test_case[:expected]
+#     p "pass", test_case[:given] 
+#   else 
+#     p "fail", actual, test_case[:expected]
+#     exit
+#   end
+# end 
+
+
+
+
+
+
+
 
 
 
