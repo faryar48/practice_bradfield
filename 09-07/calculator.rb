@@ -74,9 +74,6 @@ def triplize_fourth(list)
   end
 end 
 
-# thinks that the entire array's length is 1 because it is surrounded by parenthesis
-
-
 def calculate_triple_fifth(triple)
   return 0 if triple.empty? 
   lhs, operator, rhs = triple 
@@ -228,33 +225,6 @@ calculate_test_cases = [
 #   end
 # end 
 
-
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-# def calc(input)
-#   return input if input.class == Fixnum
-#   return calc(input[0]) if input.length == 1
-#   calc(input[0]).send(input[1], (calc(input[2..-1])))
-# end
-
-# calc_test_cases = [
-#   {given: "", expected: 0}, 
-#   {given: "1", expected: 1}, 
-#   {given: "1 + 1", expected: 2}, 
-#   {given: " 2-1 + 2 ", expected: 3}, 
-#   {given: "(1+(4+5+2)-3)+(6+8)", expected: 23},  
-# ]
-
-# p "calc - final"
-# calc_test_cases.each do |test_case| 
-#   actual = calc(test_case[:given])
-#   if actual == test_case[:expected]
-#     p "pass", test_case[:given] 
-#   else 
-#     p "fail", actual, test_case[:expected]
-#     exit
-#   end
-# end 
 
 
 
