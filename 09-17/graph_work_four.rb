@@ -9,11 +9,11 @@ nodes = {:A => [:B, :C, :D],
 }
 
 
-
 require 'set'
 require 'pry'
 
-# BFS 
+# BFS
+# same as graph_work_three but implementing a "previous"
 def shortest_path(nodes, starting, ending)
   queue = [starting]
   previous = {}
