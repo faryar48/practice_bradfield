@@ -1,20 +1,20 @@
 require 'priority_queue'
- 
+
 class Graph
     def initialize()
         @vertices = {}
     end
-  
+
     def add_vertex(name, edges)
         @vertices[name] = edges
     end
-    
+
     def shortest_path(start, finish)
         maxint = (2**(0.size * 8 -2) -1)
         distances = {}
         previous = {}
         nodes = PriorityQueue.new
-        
+
         @vertices.each do | vertex, value |
             if vertex == start
                 distances[vertex] = 0
@@ -25,12 +25,11 @@ class Graph
             end
             previous[vertex] = nil
         end
-        
+
         while nodes
             smallest = nodes.delete_min_return_key
-            
+
             if smallest == finish
-                binding.pry
                 path = []
                 while previous[smallest]
                     binding.pry
@@ -39,11 +38,11 @@ class Graph
                 end
                 return path
             end
-            
+
             if smallest == nil or distances[smallest] == maxint
-                break           
+                break
             end
-            
+
             @vertices[smallest].each do | neighbor, value |
                 alt = distances[smallest] + @vertices[smallest][neighbor]
                 if alt < distances[neighbor]
@@ -55,14 +54,14 @@ class Graph
         end
         return distances.inspect
     end
-    
+
     def to_s
         return @vertices.inspect
     end
 end
 
 
-g = Graph.new 
+g = Graph.new
 g.add_vertex(:LAX, {:LAS => 1, :PHX => 1})
 g.add_vertex(:LAS, {:DEN => 1, :LAX => 1, :PHX => 1})
 g.add_vertex(:DEN, {:LAS => 1, :PHX => 1, :ORD => 1})
